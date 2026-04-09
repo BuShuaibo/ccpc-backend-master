@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuq.ccpcbackend.mapper.AnnouncementMapper">
+    <select id="getAnnouncementsCount" resultType="long" parameterType="map">
+        SELECT
+            COUNT(*)
+        FROM
+            announcement a
+        <if test="keywordAuthor != null and keywordAuthor != ''">
+            LEFT JOIN user u ON a.author_id = u.id
+        </if>
+        <where>
+            <!-- 作者筛选条件 -->
+            <if test="keywordAuthor != null and keywordAuthor != ''">
+                AND CONCAT(u.first_name, u.last_name) LIKE CONCAT('%', #{keywordAuthor}, '%')
+            </if>
+            <!-- 标题筛选条件 -->
+            <if test="keywordTitle != null and keywordTitle != ''">
+                AND a.title LIKE CONCAT('%', #{keywordTitle}, '%')
+            </if>
+            <!-- 状态筛选条件 -->
+            <if test="keywordStatuses != null and keywordStatuses.size() > 0">
+                AND a.status IN
+                <foreach collection="keywordStatuses" item="status" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+            <!-- 赛季筛选条件 -->
+            <if test="keywordSeasons != null and keywordSeasons.size() > 0">
+                AND a.season IN
+                <foreach collection="keywordSeasons" item="season" open="(" separator="," close=")">
+                    #{season}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="getAllAnnouncement" resultType="com.neuq.ccpcbackend.vo.AdminGetAllAnnouncementVo">
+        SELECT
+            a.id,
+            a.title,
+            a.summary,
+            a.cover_picture_url,
+            a.create_at,
+            a.update_at,
+            a.status,
+            a.view_count,
+            a.season,
+            CONCAT(u.first_name, u.last_name) as author
+        FROM
+            announcement a
+        LEFT JOIN
+            user u ON a.author_id = u.id
+        <where>
+            <!-- 作者筛选条件 -->
+            <if test="keywordAuthor != null and keywordAuthor != ''">
+                AND CONCAT(u.first_name, u.last_name) LIKE CONCAT('%', #{keywordAuthor}, '%')
+            </if>
+            <!-- 标题筛选条件 -->
+            <if test="keywordTitle != null and keywordTitle != ''">
+                AND a.title LIKE CONCAT('%', #{keywordTitle}, '%')
+            </if>
+            <!-- 状态筛选条件 -->
+            <if test="keywordStatuses != null and keywordStatuses.size() > 0">
+                AND a.status IN
+                <foreach collection="keywordStatuses" item="status" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+            <!-- 赛季筛选条件 -->
+            <if test="keywordSeasons != null and keywordSeasons.size() > 0">
+                AND a.season IN
+                <foreach collection="keywordSeasons" item="season" open="(" separator="," close=")">
+                    #{season}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY a.create_at DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+    <select id="getAnnouncementInfo" resultType="com.neuq.ccpcbackend.dto.AdminGetAnnouncementInfoResponse">
+        SELECT
+            a.id,
+            a.title,
+            a.summary,
+            a.cover_picture_url,
+            a.content,
+            a.create_at,
+            a.update_at,
+            a.status,
+            a.view_count,
+            a.season,
+            CONCAT(u.first_name, u.last_name) as author
+        FROM
+            announcement a
+        LEFT JOIN
+            user u ON a.author_id = u.id
+        WHERE
+            a.id = #{announcementId}
+    </select>
+</mapper>

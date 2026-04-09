@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuq.ccpcbackend.mapper.SchoolMapper">
+    <select id="getIdByCompetitionId" resultType="com.neuq.ccpcbackend.vo.CompetingSchoolsExportVo">
+        SELECT DISTINCT
+            COALESCE(s.id, '') as id,
+            COALESCE(s.name, '') as name,
+            COALESCE(s.name_en, '') as nameEn,
+            COALESCE(s.mailing_address, '') as mailingAddress,
+            COALESCE(s.institution, '') as institution,
+            COALESCE(CONCAT(sa.first_name, sa.last_name), '') as schoolAdminName,
+            COALESCE(sa.phone, '') as schoolAdminPhone
+        FROM
+            signup su
+                INNER JOIN team t ON su.team_id = t.id
+                INNER JOIN school s ON t.school_id = s.id
+                LEFT JOIN user sa ON s.school_admin_id = sa.id
+        WHERE
+            su.competition_id = #{competitionId}
+    </select>
+    <select id="selectCompetingSchoolsEmblem" resultType="com.neuq.ccpcbackend.dto.ExportSchoolsEmblem" parameterType="java.lang.String">
+        SELECT DISTINCT school.school_badge_url,school.name
+        FROM signup
+            LEFT JOIN school on signup.school_id = school.id
+        WHERE signup.competition_id = #{competitionId}
+    </select>
+    <select id="selectInvoiceInfoByCompetitionId" resultType="com.neuq.ccpcbackend.vo.SchoolInvoiceInfoVO"
+            parameterType="java.lang.String">
+        SELECT
+            COALESCE(sc.id, '') as schoolId,
+            COALESCE(us.email, '') as email,
+            COALESCE(sc.name, '') as schoolName,
+            COALESCE(sc.name_en, '') as schoolNameEn,
+            COALESCE(CONCAT(uc.first_name, uc.last_name), '') as coachName,
+            COALESCE(CONCAT(uc.first_name_en, uc.last_name_en), '') as coachNameEn,
+            COALESCE(sc.institution, '') as institution,
+            COALESCE(sc.taxpayer_code, '', '') as taxpayerCode,
+            COALESCE(us.addressee, '') as mailingAddress,
+            COALESCE(us.address_phone, '') as mailingAcceptorPhone,
+            COALESCE(CONCAT(us.first_name, us.last_name), '') as mailignAcceptorName,
+            COALESCE(sc.bank_card_code, '') as bankCardCode,
+            COALESCE(sc.bank_name, '') as bankName
+        FROM
+            signup su
+                INNER JOIN team t ON su.team_id = t.id
+                INNER JOIN school sc ON t.school_id = sc.id
+                LEFT JOIN user us ON sc.school_admin_id = us.id
+                LEFT JOIN user uc ON t.coach_id = uc.id
+        WHERE
+            su.competition_id = #{competitionId}
+    </select>
+</mapper>

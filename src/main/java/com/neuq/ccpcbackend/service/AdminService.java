@@ -1,0 +1,55 @@
+package com.neuq.ccpcbackend.service;
+
+import com.neuq.ccpcbackend.dto.*;
+import com.neuq.ccpcbackend.entity.Sponsor;
+import com.neuq.ccpcbackend.utils.response.Response;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.multipart.MultipartFile;
+
+public interface AdminService {
+    Response getAllRole();
+    Response getUserCount(AdminGetUserCountRequest adminGetUserCountRequest);
+    Response getAllUser(AdminGetAllUserRequest adminGetAllUserRequest);
+    Response getUserInfoById(String userId);
+    Response updateUserInfoById(AdminUpdateUserInfoByIdRequest adminUpdateUserInfoByIdRequest);
+    Response getCompetitionTypeCount();
+    Response getAllCompetitionType(int pageNow, int pageSize);
+    Response addCompetitionType(String typeName);
+    Response updateCompetitionType(String id, String typeName);
+    Response getCompetitionGroupCategoryByCompetitionId(String competitionId);
+    Response updateCompetitionGroupCategory(String id, String name);
+    Response addCompetitionGroupCategory(String competitionId, String name);
+    Response getAllCompetition(AdminGetAllCompetitionRequest adminGetAllCompetitionRequest);
+    Response getCompetitionCount(AdminGetCompetitionCountRequest adminGetCompetitionCountRequest);
+    Response getCompetitionInfoById(String competitionId);
+    Response updateCompetitionInfoById(AdminUpdateCompetitionInfoByIdRequest adminUpdateCompetitionInfoByIdRequest);
+    Response addCompetition(AdminAddCompetitionRequest adminAddCompetitionRequest);
+    Response getAllCompetitionAdminBySchool(String schoolId);
+    Response getAllSchool(AdminGetAllSchoolRequest adminGetAllSchoolRequest);
+    Response getSchoolCount(AdminGetSchoolCountRequest adminGetSchoolCountRequest);
+    Response getSchoolInfoById(String schoolId);
+    Response updateSchoolInfoById(AdminUpdateSchoolInfoByIdRequest adminUpdateSchoolInfoByIdRequest);
+    Response addSchool(AdminAddSchoolRequest adminAddSchoolRequest);
+    Response getAllCoachBySchool(String schoolId);
+    Response getCurrentSeason();
+    Response getSeasonCount();
+    Response getAllSeason(int pageNow, int pageSize);
+    Response setCurrentSeason(String seasonId);
+    Response addSeason(String seasonId, Boolean isCurrentSeason);
+    Response updateSeason(String newSeasonId, String oldSeasonId);
+    Response getSystemInfo();
+    Response updateSystemInfo(AdminUpdateSystemInfoRequest adminUpdateSystemInfoRequest);
+    Response getAllSlideshow(int pageNow, int pageSize);
+    Response addSlideshow(AdminAddSlideshowRequest adminAddSlideshowRequest);
+    Response updateSlideshow(AdminUpdateSlideshowRequest adminUpdateSlideshowRequest);
+    Response deleteSlideshow(String slideshowId);
+    Response getAllAnnouncement(AdminGetAllAnnouncementRequest adminGetAllAnnouncementRequest);
+    Response getAnnouncementInfo(String announcementId);
+    Response addAnnouncement(AdminAddAnnouncementRequest adminAddAnnouncementRequest);
+    Response updateAnnouncement(AdminUpdateAnnouncementRequest adminUpdateAnnouncementRequest);
+    Response getAllSponsor(AdminGetAllSponsorRequest adminGetAllSponsorRequest);
+    Response addSponsor(Sponsor sponsor);
+    Response updateSponsor(Sponsor sponsor);
+    void getTestExcelFile(HttpServletResponse response);
+    Response uploadTestFile(MultipartFile file, String param);
+}

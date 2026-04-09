@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuq.ccpcbackend.mapper.CcpcojMapper">
+    <select id="getCcpcojAccount" resultType="com.neuq.ccpcbackend.vo.CcpcojAccountsVo">
+        WITH member_names AS (
+            SELECT
+                sm.signup_id,
+                (
+                    SELECT
+                        GROUP_CONCAT(CONCAT(u2.first_name, u2.last_name) SEPARATOR '、')
+                    FROM
+                        signup_member sm2
+                    JOIN
+                        user u2 ON sm2.member_id = u2.id
+                    WHERE
+                        sm2.signup_id = sm.signup_id
+                ) AS members
+            FROM
+                signup_member sm
+            WHERE
+                sm.signup_id = #{account.signupId}
+            GROUP BY
+                sm.signup_id
+        )
+        SELECT
+            #{account.account} AS account,
+            s.team_name,
+            sc.name AS school,
+            COALESCE(mn.members, '') AS teamMembers,
+            CONCAT(uc.first_name, uc.last_name) AS prize_coach,
+            #{area} AS area,
+            s.occupation_quota_type AS type,
+            #{account.password} AS password
+        FROM
+            signup s
+        LEFT JOIN
+            school sc ON s.school_id = sc.id
+        LEFT JOIN
+            member_names mn ON s.id = mn.signup_id
+        LEFT JOIN
+            user uc ON s.prize_coach_id = uc.id
+        WHERE
+            s.id = #{account.signupId}
+    </select>
+</mapper>

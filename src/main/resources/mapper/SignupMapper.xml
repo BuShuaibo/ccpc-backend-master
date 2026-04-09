@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuq.ccpcbackend.mapper.SignupMapper">
+    <select id="getSignupByCoachId" resultType="com.neuq.ccpcbackend.entity.Signup">
+        SELECT DISTINCT s.* FROM ccpc.signup s
+        LEFT JOIN ccpc.competition c ON s.competition_id = c.id
+        LEFT JOIN ccpc.signup_member sm ON s.id = sm.signup_id
+        LEFT JOIN ccpc.user u1 ON sm.member_id = u1.id  <!-- 队员 -->
+        LEFT JOIN ccpc.user u2 ON s.coach_id = u2.id    <!-- 教练 -->
+        WHERE #{coachId} = s.coach_id
+        <if test="competition != null and competition != ''">
+            AND c.name LIKE CONCAT('%', #{competition}, '%')
+        </if>
+        <if test="teamName != null and teamName != ''">
+            AND s.team_name LIKE CONCAT('%', #{teamName}, '%')
+        </if>
+        <if test="processStatus != null">
+            AND s.process_status = #{processStatus}
+        </if>
+        <if test="occupationQuotaType != null">
+            AND s.occupation_quota_type = #{occupationQuotaType}
+        </if>
+
+        <!-- 教练姓名模糊查询 -->
+        <if test="coachName != null and coachName != ''">
+            AND (
+            CONCAT(u2.first_name, u2.last_name) LIKE CONCAT('%', #{coachName}, '%')
+            OR CONCAT(u2.last_name, u2.first_name) LIKE CONCAT('%', #{coachName}, '%')
+            )
+        </if>
+
+        <!-- 队员模糊匹配 -->
+        <if test="memberNames != null and memberNames.size > 0">
+            AND (
+            <foreach collection="memberNames" item="name" separator=" OR ">
+                CONCAT(u1.first_name, u1.last_name) LIKE CONCAT('%', #{name}, '%')
+                OR CONCAT(u1.last_name, u1.first_name) LIKE CONCAT('%', #{name}, '%')
+            </foreach>
+            )
+        </if>
+
+        <!-- 分页 -->
+        <if test="pageSize != null and offset != null">
+            LIMIT #{pageSize} OFFSET #{offset}
+        </if>
+    </select>
+    <select id="countSignupByCoachId" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT s.id)
+        FROM ccpc.signup s
+        LEFT JOIN ccpc.competition c ON s.competition_id = c.id
+        LEFT JOIN ccpc.signup_member sm ON s.id = sm.signup_id
+        LEFT JOIN ccpc.user u1 ON sm.member_id = u1.id  <!-- 队员 -->
+        LEFT JOIN ccpc.user u2 ON s.coach_id = u2.id    <!-- 教练 -->
+        WHERE #{coachId} = s.coach_id
+        <if test="competition != null and competition != ''">
+            AND c.name LIKE CONCAT('%', #{competition}, '%')
+        </if>
+        <if test="teamName != null and teamName != ''">
+            AND s.team_name LIKE CONCAT('%', #{teamName}, '%')
+        </if>
+        <if test="processStatus != null">
+            AND s.process_status = #{processStatus}
+        </if>
+        <if test="occupationQuotaType != null">
+            AND s.occupation_quota_type = #{occupationQuotaType}
+        </if>
+
+        <if test="coachName != null and coachName != ''">
+            AND (
+            CONCAT(u2.first_name, u2.last_name) LIKE CONCAT('%', #{coachName}, '%')
+            OR CONCAT(u2.last_name, u2.first_name) LIKE CONCAT('%', #{coachName}, '%')
+            )
+        </if>
+
+        <if test="memberNames != null and memberNames.size > 0">
+            AND (
+            <foreach collection="memberNames" item="name" separator=" OR ">
+                CONCAT(u1.first_name, u1.last_name) LIKE CONCAT('%', #{name}, '%')
+                OR CONCAT(u1.last_name, u1.first_name) LIKE CONCAT('%', #{name}, '%')
+            </foreach>
+            )
+        </if>
+    </select>
+    
+    <!-- 获取同一学校的所有教练 -->
+    <select id="getSchoolCoaches" resultType="com.neuq.ccpcbackend.dto.CoachInfoResponse">
+        SELECT 
+            u.id,
+            CONCAT(u.first_name, u.last_name) as name,
+            CONCAT(u.first_name_en, ' ', u.last_name_en) as nameEn
+        FROM 
+            user u
+        JOIN 
+            user_role ur ON u.id = ur.user_id
+        JOIN 
+            role r ON ur.role_id = r.id
+        WHERE 
+            u.school_id = #{schoolId}
+            AND r.role_name_en = 'coach'
+        ORDER BY 
+            u.first_name, u.last_name
+    </select>
+</mapper>

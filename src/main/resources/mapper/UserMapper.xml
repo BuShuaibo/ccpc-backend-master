@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuq.ccpcbackend.mapper.UserMapper">
+<!--    查询用户所有身份-->
+    <select id="getAllRoleByUserId" resultType="java.lang.String">
+        SELECT role_id
+        FROM user_role
+        WHERE
+            user_id = #{userId}
+        ORDER BY
+            role_id ASC
+    </select>
+<!--    查询用户的教练名和学校名-->
+    <select id="getCoachAndSchoolByUserId" resultType="com.neuq.ccpcbackend.vo.UserGetCoachAndSchoolVo">
+        SELECT
+            u.coach_id,
+            u.school_id,
+            COALESCE(CONCAT(c.first_name, c.last_name), '未加入教练') as coach ,
+            COALESCE(s.name, '未加入学校') as school
+        FROM user u
+        LEFT JOIN user c
+            ON u.coach_id = c.id
+        LEFT JOIN school s
+            ON u.school_id = s.id
+        WHERE
+            u.id = #{userId}
+    </select>
+<!--    查询某个学校的所有比赛管理员-->
+    <select id="getAllCompetitionAdminBySchool" resultType="com.neuq.ccpcbackend.vo.SchoolGetAllCompetitionAdminVo">
+        SELECT u.id, u.first_name, u.last_name, u.first_name_en, u.last_name_en
+        FROM user u
+        INNER JOIN user_role ur ON u.id = ur.user_id
+        WHERE u.school_id = #{schoolId} AND ur.role_id = '5';
+    </select>
+
+    <select id="getAllSchoolCoach" resultType="com.neuq.ccpcbackend.entity.User">
+        SELECT u.id,u.first_name,u.last_name,u.first_name_en,u.last_name_en
+        FROM user u
+        LEFT JOIN user_role ur ON u.id = ur.user_id
+        WHERE
+            ur.role_id = 6
+          AND u.school_id = #{schoolId}
+        <if test="userKeywordRequest.fullName != null and userKeywordRequest.fullName != ''">
+            AND CONCAT(u.first_name, u.last_name) LIKE CONCAT(#{userKeywordRequest.fullName}, '%')
+        </if>
+        <if test="userKeywordRequest.fullNameEn != null and userKeywordRequest.fullNameEn != ''">
+            AND CONCAT(u.first_name_en, u.last_name_en) LIKE CONCAT(#{userKeywordRequest.fullNameEn}, '%')
+        </if>
+    </select>
+
+<!--    查询某个学校的所有教练-->
+    <select id="getAllCoachBySchool" resultType="com.neuq.ccpcbackend.vo.SchoolGetAllCoachVo">
+        SELECT u.id, u.first_name, u.last_name, u.first_name_en, u.last_name_en
+        FROM user u
+                 INNER JOIN user_role ur ON u.id = ur.user_id
+        WHERE u.school_id = #{schoolId} AND ur.role_id = '6';
+    </select>
+    <!--    查询某个学校的所有教练-->
+    <select id="getIdByName" resultType="java.lang.String">
+        SELECT u.id
+        FROM user u
+        <where>
+            <if test="name != null and name != ''">
+                OR CONCAT(u.first_name, u.last_name) LIKE #{name}
+            </if>
+            <if test="name != null and name != ''">
+                OR CONCAT(u.first_name_en, u.last_name_en) LIKE #{name}
+            </if>
+        </where>
+    </select>
+</mapper>
+

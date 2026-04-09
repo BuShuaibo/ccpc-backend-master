@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.neuq.ccpcbackend.mapper.TeamMapper">
+
+    <select id="getTeamInfo" resultType="com.neuq.ccpcbackend.vo.TeamVo">
+        SELECT DISTINCT t.id,t.name,t.name_en,
+                        s.name AS school_name,
+                        uc.first_name AS coach_first_name,
+                        uc.last_name AS coach_last_name,
+                        t.season,
+                        up.first_name AS prize_coach_first_name,
+                        up.last_name AS prize_coach_last_name,
+                        up.first_name_en AS prize_coach_first_name_en,
+                        up.last_name_en AS prize_coach_last_name_en,
+                        t.is_female_team
+        FROM team t
+        LEFT JOIN school s ON s.id = t.school_id
+        LEFT JOIN user uc On uc.id = t.coach_id
+        LEFT JOIN user up On up.id = t.prize_coach_id
+        WHERE
+        t.id = #{teamId}
+    </select>
+
+    <select id="getMember" resultType="com.neuq.ccpcbackend.entity.User">
+        SELECT DISTINCT u.id,u.first_name,u.last_name,u.first_name_en,u.last_name_en
+        FROM team_member tm
+        LEFT JOIN team t ON tm.team_id = t.id
+        LEFT JOIN user u ON tm.member_id = u.id
+        WHERE
+            t.id = #{teamId}
+    </select>
+
+    <select id="getIdByCompetitionId" resultType="com.neuq.ccpcbackend.vo.TeamExportVo">
+        WITH ranked_members AS(
+            SELECT *,ROW_NUMBER() over (PARTITION BY team_id order by id) AS rn FROM team_member
+        ),
+             member1 AS ( SELECT * from ranked_members where rn = 1),
+             member2 AS ( SELECT * from ranked_members where rn = 2),
+             member3 AS ( SELECT * from ranked_members where rn = 3)
+        SELECT DISTINCT
+            t.id,
+            COALESCE(t.name, '') as Name,
+            COALESCE(t.name_en, '') as NameEn,
+            COALESCE(s.name, '') as schoolName,
+            COALESCE(CASE WHEN t.is_female_team = 1 THEN 'Y' ELSE 'N' END, '') as isFemaleTeam,
+            COALESCE(su.occupation_quota_type,'') as occupationQuotaType,
+            CONCAT(COALESCE(uc.first_name, ''), COALESCE(uc.last_name, '')) as coachName,
+            CONCAT(COALESCE(uc.first_name_en, ''), COALESCE(uc.last_name_en, '')) as coachNameEn,
+            COALESCE(uc.phone, '') as coachPhone,
+            CONCAT(COALESCE(up.first_name, ''), COALESCE(up.last_name, '')) as prizeCoachName,
+            CONCAT(COALESCE(up.first_name_en, ''), COALESCE(up.last_name_en, '')) as prizeCoachNameEn,
+            COALESCE(up.phone, '') as prizeCoachPhone,
+            CONCAT(COALESCE(u1.first_name, ''), COALESCE(u1.last_name, '')) as MemberName1,
+            CONCAT(COALESCE(u1.first_name_en, ''), COALESCE(u1.last_name_en, '')) as MemberNameEn1,
+            COALESCE(u1.phone, '') as MemberName1Phone,
+            CONCAT(COALESCE(u2.first_name, ''), COALESCE(u2.last_name, '')) as MemberName2,
+            CONCAT(COALESCE(u2.first_name_en, ''), COALESCE(u2.last_name_en, '')) as MemberNameEn2,
+            COALESCE(u2.phone, '') as MemberName2Phone,
+            CONCAT(COALESCE(u3.first_name, ''), COALESCE(u3.last_name, '')) as MemberName3,
+            CONCAT(COALESCE(u3.first_name_en, ''), COALESCE(u3.last_name_en, '')) as MemberNameEn3,
+            COALESCE(u3.phone, '') as MemberName3Phone
+        FROM
+            signup su
+                INNER JOIN team t ON su.team_id = t.id
+                INNER JOIN school s ON su.school_id = s.id
+                LEFT JOIN user uc ON t.coach_id = uc.id
+                LEFT JOIN user up ON t.prize_coach_id = up.id
+                LEFT JOIN member1 tm1 ON t.id = tm1.team_id
+                LEFT JOIN user u1 ON tm1.member_id = u1.id
+                LEFT JOIN member2 tm2 ON t.id = tm2.team_id
+                LEFT JOIN user u2 ON tm2.member_id = u2.id
+                LEFT JOIN member3 tm3 ON t.id = tm3.team_id
+                LEFT JOIN user u3 ON tm3.member_id = u3.id
+        WHERE
+            su.competition_id = #{competitionId}
+    </select>
+
+    <select id="getMemberCount" resultType="Long">
+        select count(tm.member_id) from team t
+        left join team_member tm on tm.team_id = t.id
+        where t.season = #{year}
+    </select>
+</mapper>
